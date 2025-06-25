@@ -6,19 +6,15 @@ The input consists of 20x20 pixel images (flattened to 400 features), and the ne
 
 ## Features
 
-- Manual implementation of:
+Manual implementation of:
 
-- - Forward propagation
+- Forward propagation
+- Backpropagation
+- Cost function computation
+- Weight optimization using gradient descent
 
-- - Backpropagation
-
-- - Cost function computation
-
-- - Weight optimization using gradient descent
-
-- Simple dataset handling with train/test splitting
-
-- Prediction using the trained model
+Simple dataset handling with train/test splitting
+Prediction using the trained model
 
 # Functions Overview
 
