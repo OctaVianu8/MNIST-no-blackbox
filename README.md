@@ -14,6 +14,7 @@ Manual implementation of:
 - Weight optimization using gradient descent
 
 Simple dataset handling with train/test splitting
+
 Prediction using the trained model
 
 # Functions Overview
