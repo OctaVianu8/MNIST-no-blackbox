@@ -5,6 +5,8 @@ function run_test()
     input_layer_size = 400;
     hidden_layer_size = 25;
     output_layer_size = 10;
+    
+    m = size(X, 1);
 
     # We have a two-layered neural network
     initial_theta1 = initialize_weights(input_layer_size, hidden_layer_size);

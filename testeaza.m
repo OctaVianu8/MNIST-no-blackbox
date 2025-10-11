@@ -6,5 +6,5 @@ function run_test()
     hidden_layer_size = 25;
     output_layer_size = 10;
 
-    X(1,:)
+    X(1,:)'
 endfunction

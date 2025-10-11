@@ -1,15 +1,18 @@
 import pygame
 import sys
+import subprocess
+import os
+import numpy as np
 
 # Initialize Pygame
 pygame.init()
 
 # Constants
 GRID_SIZE = 20
-CELL_SIZE = 30
+CELL_SIZE = 25
 GRID_WIDTH = GRID_SIZE * CELL_SIZE
-SIDEBAR_WIDTH = 150
-BUTTON_HEIGHT = 80
+SIDEBAR_WIDTH = 120
+BUTTON_HEIGHT = 60
 WINDOW_WIDTH = GRID_WIDTH + SIDEBAR_WIDTH
 WINDOW_HEIGHT = GRID_WIDTH + BUTTON_HEIGHT
 
@@ -32,9 +35,13 @@ grid = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
 # Tool state
 is_drawing_mode = True  # True = draw, False = erase
 
+# Prediction result
+prediction_result = None  # Will store the predicted digit
+
 # Font
 font = pygame.font.Font(None, 24)
 small_font = pygame.font.Font(None, 20)
+large_font = pygame.font.Font(None, 72)
 
 def draw_grid():
     """Draw the 20x20 grid"""
@@ -56,7 +63,7 @@ def draw_tool_selector():
     """Draw the draw/erase pill switch on the right sidebar"""
     switch_x = GRID_WIDTH + 10
     switch_y = 50
-    switch_width = 130
+    switch_width = 100
     switch_height = 80
     
     # Title
@@ -82,6 +89,27 @@ def draw_tool_selector():
     screen.blit(erase_text, text_rect)
     
     return (switch_x, switch_y, switch_width, switch_height)
+
+def draw_prediction_display():
+    """Draw the prediction result on the right sidebar"""
+    if prediction_result is not None:
+        display_x = GRID_WIDTH + 10
+        display_y = 200
+        display_width = 100
+        display_height = 100
+        
+        # Background box
+        pygame.draw.rect(screen, WHITE, (display_x, display_y, display_width, display_height), border_radius=10)
+        pygame.draw.rect(screen, BLUE, (display_x, display_y, display_width, display_height), 3, border_radius=10)
+        
+        # Label
+        label = small_font.render("Predicted:", True, BLACK)
+        screen.blit(label, (display_x + 10, display_y - 25))
+        
+        # Large digit
+        digit_text = large_font.render(str(prediction_result), True, BLUE)
+        text_rect = digit_text.get_rect(center=(display_x + display_width // 2, display_y + display_height // 2))
+        screen.blit(digit_text, text_rect)
 
 def draw_predict_button():
     """Draw the predict button at the bottom"""
@@ -122,10 +150,97 @@ def get_grid_array():
             arr.append(grid[row][col])
     return arr
 
-def predict(array):
-    print("Grid Array (400 elements):")
-    print(arr)
+def normalize_array(array, method='minmax'):
+    """
+    Normalize the array using different methods.
     
+    Methods:
+    - 'minmax': Scale to [0, 1] range (default)
+    - 'standardize': Standardize to mean=0, std=1
+    - 'training': Use training dataset statistics (recommended)
+    """
+    arr = np.array(array, dtype=float)
+    
+    if method == 'minmax':
+        # Min-max scaling to [0, 1]
+        # Already done if array contains only 0s and 1s
+        return arr.tolist()
+    
+    elif method == 'standardize':
+        # Standardize to mean=0, std=1
+        mean = np.mean(arr)
+        std = np.std(arr)
+        if std == 0:
+            return arr.tolist()
+        normalized = (arr - mean) / std
+        return normalized.tolist()
+    
+    elif method == 'training':
+        # Use YOUR training dataset's mean and std
+        # TODO: Replace these with your actual training data statistics
+        # You can calculate these from your training data in Octave/Python
+        TRAIN_MEAN = 0.1307  # Example: MNIST mean
+        TRAIN_STD = 0.3081   # Example: MNIST std
+        
+        normalized = (arr - TRAIN_MEAN) / TRAIN_STD
+        return normalized.tolist()
+    
+    else:
+        return arr.tolist()
+
+def predict(array):
+    """
+    Send array to Octave program for prediction and return the result.
+    
+    The function:
+    1. Normalizes the array to match training data format
+    2. Writes the array to a file (input.txt)
+    3. Calls the Octave program (predict.m)
+    4. Reads the prediction result from output file (prediction.txt)
+    5. Returns the predicted digit
+    """
+    global prediction_result
+    
+    try:
+        # Normalize the array to match your training data
+        # Change method to 'standardize' or 'training' if needed
+        normalized_array = normalize_array(array, method='training')
+        # print(normalized_array)
+        
+        # Write array to input file
+        with open('input.txt', 'w') as f:
+            f.write(' '.join(map(str, normalized_array)))
+        
+        # Call Octave program
+        # Assumes you have an Octave script called 'predict.m' in the same directory
+        subprocess.run(['octave', '--quiet', '--eval', 'predict'], 
+                      check=True, 
+                      timeout=10)
+        
+        # Read prediction result
+        if os.path.exists('prediction.txt'):
+            with open('prediction.txt', 'r') as f:
+                result = f.read().strip()
+                prediction_result = int(result)
+                print(f"Predicted digit: {prediction_result}")
+                return prediction_result
+        else:
+            print("Error: prediction.txt not found")
+            prediction_result = None
+            return None
+            
+    except subprocess.TimeoutExpired:
+        print("Error: Octave process timed out")
+        prediction_result = None
+        return None
+    except subprocess.CalledProcessError as e:
+        print(f"Error running Octave: {e}")
+        prediction_result = None
+        return None
+    except Exception as e:
+        print(f"Error in predict function: {e}")
+        prediction_result = None
+        return None
 
 # Main game loop
 clock = pygame.time.Clock()
@@ -146,6 +261,9 @@ while running:
                 btn_x, btn_y, btn_w, btn_h = (10, GRID_WIDTH + 10, WINDOW_WIDTH - 20, 40)
                 if btn_x <= pos[0] <= btn_x + btn_w and btn_y <= pos[1] <= btn_y + btn_h:
                     arr = get_grid_array()
+                    # print("Grid Array (400 elements):")
+                    # print(arr)
+                    # Call predict function
                     predict(arr)
                 
                 # Check if tool selector was clicked
@@ -180,6 +298,7 @@ while running:
     draw_grid()
     draw_tool_selector()
     draw_predict_button()
+    draw_prediction_display()
     
     # Update display
     pygame.display.flip()
