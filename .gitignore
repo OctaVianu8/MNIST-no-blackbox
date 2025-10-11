@@ -1,1 +1,6 @@
 .venv
+opacity-player.py
+out
+prediction.txt
+visualize_input.py
+data.txt
