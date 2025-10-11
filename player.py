@@ -72,20 +72,26 @@ def draw_tool_selector():
     
     # Draw mode button (top half)
     draw_color = BLUE if is_drawing_mode else LIGHT_GRAY
-    pygame.draw.rect(screen, draw_color, (switch_x, switch_y, switch_width, switch_height // 2), border_radius=10)
-    pygame.draw.rect(screen, DARK_GRAY, (switch_x, switch_y, switch_width, switch_height // 2), 2, border_radius=10)
+    pygame.draw.rect(screen, draw_color, (switch_x, switch_y, switch_width, 
+                                          switch_height // 2), border_radius=10)
+    pygame.draw.rect(screen, DARK_GRAY, (switch_x, switch_y, switch_width, 
+                                         switch_height // 2), 2, border_radius=10)
     
     draw_text = small_font.render("Draw", True, WHITE if is_drawing_mode else BLACK)
-    text_rect = draw_text.get_rect(center=(switch_x + switch_width // 2, switch_y + switch_height // 4))
+    text_rect = draw_text.get_rect(center=(switch_x + switch_width // 2, 
+                                           switch_y + switch_height // 4))
     screen.blit(draw_text, text_rect)
     
     # Erase mode button (bottom half)
     erase_color = BLUE if not is_drawing_mode else LIGHT_GRAY
-    pygame.draw.rect(screen, erase_color, (switch_x, switch_y + switch_height // 2, switch_width, switch_height // 2), border_radius=10)
-    pygame.draw.rect(screen, DARK_GRAY, (switch_x, switch_y + switch_height // 2, switch_width, switch_height // 2), 2, border_radius=10)
+    pygame.draw.rect(screen, erase_color, (switch_x, switch_y + switch_height // 2, 
+                                           switch_width, switch_height // 2), border_radius=10)
+    pygame.draw.rect(screen, DARK_GRAY, (switch_x, switch_y + switch_height // 2, 
+                                         switch_width, switch_height // 2), 2, border_radius=10)
     
     erase_text = small_font.render("Erase", True, WHITE if not is_drawing_mode else BLACK)
-    text_rect = erase_text.get_rect(center=(switch_x + switch_width // 2, switch_y + 3 * switch_height // 4))
+    text_rect = erase_text.get_rect(center=(switch_x + switch_width // 2, 
+                                            switch_y + 3 * switch_height // 4))
     screen.blit(erase_text, text_rect)
     
     return (switch_x, switch_y, switch_width, switch_height)
@@ -98,12 +104,15 @@ def draw_erase_all_button():
     button_height = 35
     
     # Button background
-    pygame.draw.rect(screen, (255, 100, 100), (button_x, button_y, button_width, button_height), border_radius=5)
-    pygame.draw.rect(screen, (200, 50, 50), (button_x, button_y, button_width, button_height), 2, border_radius=5)
+    pygame.draw.rect(screen, (255, 100, 100), (button_x, button_y, button_width, 
+                                               button_height), border_radius=5)
+    pygame.draw.rect(screen, (200, 50, 50), (button_x, button_y, button_width, 
+                                             button_height), 2, border_radius=5)
     
     # Button text
     text = small_font.render("Clear All", True, WHITE)
-    text_rect = text.get_rect(center=(button_x + button_width // 2, button_y + button_height // 2))
+    text_rect = text.get_rect(center=(button_x + button_width // 2, 
+                                      button_y + button_height // 2))
     screen.blit(text, text_rect)
     
     return (button_x, button_y, button_width, button_height)
@@ -117,8 +126,10 @@ def draw_prediction_display():
         display_height = 100
         
         # Background box
-        pygame.draw.rect(screen, WHITE, (display_x, display_y, display_width, display_height), border_radius=10)
-        pygame.draw.rect(screen, BLUE, (display_x, display_y, display_width, display_height), 3, border_radius=10)
+        pygame.draw.rect(screen, WHITE, (display_x, display_y, display_width,
+                                          display_height), border_radius=10)
+        pygame.draw.rect(screen, BLUE, (display_x, display_y, display_width, 
+                                        display_height), 3, border_radius=10)
         
         # Label
         label = small_font.render("Predicted:", True, BLACK)
@@ -126,7 +137,8 @@ def draw_prediction_display():
         
         # Large digit
         digit_text = large_font.render(str(prediction_result), True, BLUE)
-        text_rect = digit_text.get_rect(center=(display_x + display_width // 2, display_y + display_height // 2))
+        text_rect = digit_text.get_rect(center=(display_x + display_width // 2, 
+                                                display_y + display_height // 2))
         screen.blit(digit_text, text_rect)
 
 def draw_predict_button():
@@ -140,7 +152,8 @@ def draw_predict_button():
     pygame.draw.rect(screen, BLUE, (button_x, button_y, button_width, button_height), 3, border_radius=5)
     
     text = font.render("PREDICT", True, BLACK)
-    text_rect = text.get_rect(center=(button_x + button_width // 2, button_y + button_height // 2))
+    text_rect = text.get_rect(center=(button_x + button_width // 2, 
+                                      button_y + button_height // 2))
     screen.blit(text, text_rect)
     
     return (button_x, button_y, button_width, button_height)
@@ -164,24 +177,21 @@ def clear_grid():
     """Clear all cells in the grid"""
     global grid, prediction_result
     grid = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
-    prediction_result = None  # Also clear the prediction
+    prediction_result = None
 
 def get_grid_array():
-    """Convert grid to 400-length array"""
     arr = []
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
+            # The array is flipped because of the way the dataset is built
             arr.append(grid[col][row])
     return arr
 
 def normalize_array(array, method='minmax'):
     """
-    Normalize the array using different methods.
-    
     Methods:
     - 'minmax': Scale to [0, 1] range (default)
     - 'standardize': Standardize to mean=0, std=1
-    - 'training': Use training dataset statistics (recommended)
     """
     arr = np.array(array, dtype=float)
     
@@ -199,35 +209,14 @@ def normalize_array(array, method='minmax'):
         normalized = (arr - mean) / std
         return normalized.tolist()
     
-    elif method == 'training':
-        # Use YOUR training dataset's mean and std
-        # TODO: Replace these with your actual training data statistics
-        # You can calculate these from your training data in Octave/Python
-        TRAIN_MEAN = 0.1307  # Example: MNIST mean
-        TRAIN_STD = 0.3081   # Example: MNIST std
-        
-        normalized = (arr - TRAIN_MEAN) / TRAIN_STD
-        return normalized.tolist()
-    
     else:
         return arr.tolist()
 
 def predict(array):
-    """
-    Send array to Octave program for prediction and return the result.
-    
-    The function:
-    1. Normalizes the array to match training data format
-    2. Writes the array to a file (input.txt)
-    3. Calls the Octave program (predict.m)
-    4. Reads the prediction result from output file (prediction.txt)
-    5. Returns the predicted digit
-    """
+
     global prediction_result
     
     try:
-        # Normalize the array to match your training data
-        # Change method to 'standardize' or 'training' if needed
         normalized_array = normalize_array(array, method='minmax')
         
         # Write array to input file
@@ -235,7 +224,6 @@ def predict(array):
             f.write(' '.join(map(str, normalized_array)))
         
         # Call Octave program
-        # Assumes you have an Octave script called 'predict.m' in the same directory
         subprocess.run(['octave', '--quiet', '--eval', 'predict'], 
                       check=True, 
                       timeout=10)
@@ -284,8 +272,6 @@ while running:
                 btn_x, btn_y, btn_w, btn_h = (10, GRID_WIDTH + 10, WINDOW_WIDTH - 20, 40)
                 if btn_x <= pos[0] <= btn_x + btn_w and btn_y <= pos[1] <= btn_y + btn_h:
                     arr = get_grid_array()
-                    # print("Grid Array (400 elements):")
-                    # print(arr)
                     # Call predict function
                     predict(arr)
                 
@@ -334,7 +320,6 @@ while running:
     draw_predict_button()
     draw_prediction_display()
     
-    # Update display
     pygame.display.flip()
     clock.tick(60)
 
