@@ -6,5 +6,10 @@ function run_test()
     hidden_layer_size = 25;
     output_layer_size = 10;
 
-    X(1,:)'
+    cop = X(2000,:)';
+
+    # trebuie sa fie 3 - 2000
+    save('data.txt', 'cop')
+
+    % y(2000)
 endfunction

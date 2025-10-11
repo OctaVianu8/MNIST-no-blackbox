@@ -18,7 +18,7 @@ function [classes] = predict_classes(X, weights, ...
   A2 = sigmoid(Z2);
   A2 = [ones(1,m) ; A2];
   Z3 = Theta2 * A2;
-  A3 = sigmoid(Z3)
+  A3 = sigmoid(Z3);
 
   [~, classes] = max(A3);
   classes = classes';

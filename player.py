@@ -90,11 +90,29 @@ def draw_tool_selector():
     
     return (switch_x, switch_y, switch_width, switch_height)
 
+def draw_erase_all_button():
+    """Draw the erase all button on the right sidebar"""
+    button_x = GRID_WIDTH + 10
+    button_y = 150
+    button_width = 100
+    button_height = 35
+    
+    # Button background
+    pygame.draw.rect(screen, (255, 100, 100), (button_x, button_y, button_width, button_height), border_radius=5)
+    pygame.draw.rect(screen, (200, 50, 50), (button_x, button_y, button_width, button_height), 2, border_radius=5)
+    
+    # Button text
+    text = small_font.render("Clear All", True, WHITE)
+    text_rect = text.get_rect(center=(button_x + button_width // 2, button_y + button_height // 2))
+    screen.blit(text, text_rect)
+    
+    return (button_x, button_y, button_width, button_height)
+
 def draw_prediction_display():
     """Draw the prediction result on the right sidebar"""
     if prediction_result is not None:
         display_x = GRID_WIDTH + 10
-        display_y = 200
+        display_y = 210
         display_width = 100
         display_height = 100
         
@@ -142,12 +160,18 @@ def handle_grid_click(pos, is_dragging=False):
             else:
                 grid[row][col] = 0
 
+def clear_grid():
+    """Clear all cells in the grid"""
+    global grid, prediction_result
+    grid = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
+    prediction_result = None  # Also clear the prediction
+
 def get_grid_array():
     """Convert grid to 400-length array"""
     arr = []
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
-            arr.append(grid[row][col])
+            arr.append(grid[col][row])
     return arr
 
 def normalize_array(array, method='minmax'):
@@ -204,8 +228,7 @@ def predict(array):
     try:
         # Normalize the array to match your training data
         # Change method to 'standardize' or 'training' if needed
-        normalized_array = normalize_array(array, method='training')
-        # print(normalized_array)
+        normalized_array = normalize_array(array, method='minmax')
         
         # Write array to input file
         with open('input.txt', 'w') as f:
@@ -278,6 +301,16 @@ while running:
                             is_drawing_mode = True
                         elif switch_y + switch_height // 2 <= pos[1] <= switch_y + switch_height:
                             is_drawing_mode = False
+                    
+                    # Check if erase all button was clicked
+                    erase_btn_x = GRID_WIDTH + 10
+                    erase_btn_y = 150
+                    erase_btn_w = 100
+                    erase_btn_h = 35
+                    
+                    if (erase_btn_x <= pos[0] <= erase_btn_x + erase_btn_w and 
+                        erase_btn_y <= pos[1] <= erase_btn_y + erase_btn_h):
+                        clear_grid()
                 
                 # Otherwise handle grid click
                 else:
@@ -297,6 +330,7 @@ while running:
     # Draw everything
     draw_grid()
     draw_tool_selector()
+    draw_erase_all_button()
     draw_predict_button()
     draw_prediction_display()
     
